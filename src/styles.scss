@@ -62,7 +62,7 @@ html, body {
   overflow: hidden;
 }
 
-html.overlay-mode, html.overlay-mode body { background: #100f12; }
+html.overlay-mode, html.overlay-mode body { background: transparent; }
 
 .num { font-variant-numeric: tabular-nums; }
 

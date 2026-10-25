@@ -251,7 +251,12 @@
     }
   },
   "overlay": {
-    "session": "Session"
+    "session": "Session",
+    "perHour": "Per hour",
+    "mapProfit": "Map profit",
+    "live": "Live",
+    "paused": "Paused",
+    "waiting": "Waiting for a map"
   },
   "terms": {
     "冰图": "Ice map",
