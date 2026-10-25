@@ -75,10 +75,6 @@ CATEGORY_BY_TYPE = {
 
 ORGAN_PREFIXES = ("核心器官", "特殊器官", "完美", "普通器官")
 
-# Ids whose two sources disagree on the name; the tlidb slug matches the
-# Chinese record we have, so it wins for these.
-PREFER_SLUG = {"10290", "10291", "10292", "10300", "10301", "10302", "10320", "10321", "10322"}
-
 CURRENCY_IDS = {"100300"}  # Flame Elementium, the price unit
 
 
@@ -120,6 +116,12 @@ def main() -> int:
     en = json.loads((SRC / "sattatracker_en_id_table.json").read_text(encoding="utf-8"))
     cn = json.loads((SRC / "etor_items_cn.json").read_text(encoding="utf-8"))
 
+    # Ids reused across seasons appear more than once; the last record is the
+    # current item, so its English slug wins over the older table name.
+    occurrences = {}
+    for rec in cn:
+        occurrences[str(rec.get("id", ""))] = occurrences.get(str(rec.get("id", "")), 0) + 1
+
     out = {}
     cn_names = {}
     for rec in cn:
@@ -128,12 +130,12 @@ def main() -> int:
             continue
         slug = slug_name(rec.get("url", ""))
         table = clean(en.get(item_id, {}).get("name", ""))
-        name = slug if (item_id in PREFER_SLUG and slug) else (table or slug)
+        name = slug if (occurrences[item_id] > 1 and slug) else (table or slug)
         if not name:
             continue
         cn_name = str(rec.get("name", "")).strip()
         if cn_name and len(cn_name) <= 40:
-            cn_names.setdefault(cn_name, item_id)
+            cn_names[cn_name] = item_id
         out[item_id] = {
             "n": name,
             "c": category_for(rec.get("type", ""), item_id),
