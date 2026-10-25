@@ -36,7 +36,7 @@ type DropTab = 'loot' | 'cost' | 'unpriced';
         <div class="kpi">
           <span class="label">{{ 'overview.perHourMap' | t }}</span>
           <span class="value num">{{ perHourMap() | fe }}</span>
-          <span class="hint">{{ 'overview.perHourWall' | t }}: <b class="num">{{ s.session.perHourWall | fe }}</b></span>
+          <span class="hint">{{ 'overview.perHourWall' | t }}: <b class="num">{{ perHourWall() | fe }}</b></span>
         </div>
         <div class="kpi">
           <span class="label">{{ 'overview.maps' | t }}</span>
@@ -46,7 +46,7 @@ type DropTab = 'loot' | 'cost' | 'unpriced';
         <div class="kpi">
           <span class="label">{{ 'overview.mapTime' | t }}</span>
           <span class="value num">{{ store.sessionMapTimeMs() | duration }}</span>
-          <span class="hint">{{ 'overview.sessionTime' | t }}: <b class="num">{{ s.session.wallTimeMs | duration }}</b></span>
+          <span class="hint">{{ 'overview.sessionTime' | t }}: <b class="num">{{ store.sessionWallMs() | duration }}</b></span>
         </div>
         <div class="kpi">
           <span class="label">{{ 'overview.bag' | t }}</span>
@@ -132,6 +132,11 @@ export class Overview {
   readonly perHourMap = computed(() => {
     const s = this.store.snapshot();
     const ms = this.store.sessionMapTimeMs();
+    return s && ms > 0 ? s.session.profit / (ms / 3_600_000) : 0;
+  });
+  readonly perHourWall = computed(() => {
+    const s = this.store.snapshot();
+    const ms = this.store.sessionWallMs();
     return s && ms > 0 ? s.session.profit / (ms / 3_600_000) : 0;
   });
   readonly avgMapMs = computed(() => {

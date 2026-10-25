@@ -29,6 +29,13 @@ export class TrackerStore {
     return s.session.mapTimeMs + live;
   });
 
+  /** Real time since the session's first map, ticking between snapshots. */
+  readonly sessionWallMs = computed(() => {
+    const s = this.snapshot();
+    if (!s || (!s.session.wallTimeMs && !s.current)) return 0;
+    return s.session.wallTimeMs + Math.max(0, this.now() - s.now);
+  });
+
   private pending: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {

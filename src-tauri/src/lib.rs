@@ -1,8 +1,8 @@
 mod net;
-mod parser;
-mod prices;
+pub mod parser;
+pub mod prices;
 mod strategy;
-mod tracker;
+pub mod tracker;
 mod views;
 
 use parser::{Event, Parser};
