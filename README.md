@@ -4,8 +4,26 @@ A local loot and profit tracker for **Torchlight: Infinite**. It reads the
 game's own log file, works out what every map run dropped and cost, values it
 with public market prices and shows profit per map, per hour and per session.
 
-It is a from-scratch rewrite of the ideas behind the ETor tracker, built so
-that nothing on your PC can be controlled from the internet.
+## Why this exists
+
+The popular tracker for this game, **ETor (易火)**, and its English
+translation work well, but they are built in a way that lets a remote server
+take over your PC:
+
+- its window is a live website loaded from the author's server on every
+  start, and that website is given a function that runs **any** Windows
+  command it wants;
+- the app demands **administrator rights**, so those commands run as admin;
+- the browser sandbox is turned off, and the auto-updater installs whatever
+  zip it downloads with no signature check.
+
+Nothing indicates this has been abused, but anyone who controls (or
+compromises) that server could run code on every user's machine, and none of
+it is needed to track loot. TLI Tracker is a from-scratch rewrite of the same
+idea that removes all of it. See [Security and privacy](#security-and-privacy)
+for the full comparison.
+
+## At a glance
 
 - **Desktop app**: Tauri 2 (Rust) + Angular 22. One small `.exe`, no Node or
   Rust needed to run it.
@@ -87,8 +105,8 @@ The Rust side lives in `src-tauri/src/`:
 
 ## Security and privacy
 
-This project exists because the original ETor app could be fully controlled by
-its server. A static review of ETor 1.3.0 (translated build) found:
+A static review (no code was run) of ETor 1.3.0, the English translated
+build, found the following; the same code is in the original Chinese build:
 
 | ETor | TLI Tracker |
 |---|---|
