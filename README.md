@@ -1,33 +1,31 @@
 # TLI Tracker
 
-A local loot and profit tracker for **Torchlight: Infinite**. It reads the
-game's own log file, works out what every map run dropped and cost, values it
-with public market prices and shows profit per map, per hour and per session.
+A free, open-source loot and profit tracker for **Torchlight: Infinite** on
+Windows. It reads the game's own log file, works out what every map run
+dropped and cost, values it with community market prices and shows profit per
+map, per hour and per session.
 
-## Why this exists
+## Why another tracker?
 
-The popular tracker for this game, **ETor (易火)**, and its English
-translation work well, but they are built in a way that lets a remote server
-take over your PC:
+ETor (易火) is a great tool, but it's built as a thin window around the
+developer's website: the interface is loaded from their server on every
+start, that page can run Windows commands through the app, and the app asks
+for administrator rights.
+In practice that means it fully trusts that server. If you're fine with that
+trade-off, it works great.
 
-- its window is a live website loaded from the author's server on every
-  start, and that website is given a function that runs **any** Windows
-  command it wants;
-- the app demands **administrator rights**, so those commands run as admin;
-- the browser sandbox is turned off, and the English translation adds an
-  auto-updater that installs whatever zip it downloads with no signature
-  check.
+TLI Tracker takes the opposite approach: the whole interface ships inside the
+app, there is no way for a server to run anything on your PC, and it needs no
+admin rights. [Security and privacy](#security-and-privacy) lists the
+differences, with file names and lines so you can check them yourself.
 
-Nothing indicates this has been abused, but anyone who controls (or
-compromises) that server could run code on every user's machine, and none of
-it is needed to track loot. TLI Tracker is a from-scratch rewrite of the same
-idea that removes all of it. See [Security and privacy](#security-and-privacy)
-for the full comparison.
+Prices and the strategy leaderboard come from ETor's public price service
+(read-only, nothing is sent back), so thanks to its authors for running it.
 
 ## At a glance
 
-- **Desktop app**: Tauri 2 (Rust) + Angular 22. One small `.exe`, no Node or
-  Rust needed to run it.
+- **Desktop app** for Windows 10/11: Tauri 2 (Rust) + Angular 22. One small
+  `.exe`, no Node or Rust needed to run it.
 - **Local first**: all data lives in `%APPDATA%\local.tlitracker.app\`.
 - **English UI**, with translations as plain JSON files (see
   [Adding a language](#adding-a-language)).
@@ -151,7 +149,7 @@ What the app does over the network:
 - `GET …/api/strategy/stage-options` and `…/api/strategy/leaderboard` (only
   when you open Strategies)
 
-These are public, read-only endpoints of the community price service. The
+These are public, read-only endpoints of ETor's community price service. The
 host is hard-coded, HTTPS only, redirects are refused, bodies are capped at
 4 MB and must be JSON. Rust reduces every response to digits-only ids,
 bounded numbers and short sanitized strings before the UI sees it, and the UI
