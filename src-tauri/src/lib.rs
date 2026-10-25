@@ -603,6 +603,12 @@ pub fn run() {
         .build(tauri::generate_context!())
         .expect("failed to build app")
         .run(|app, event| {
+            // Closing the main window quits, even if the overlay is still open.
+            if let RunEvent::WindowEvent { label, event: tauri::WindowEvent::Destroyed, .. } = &event {
+                if label == "main" {
+                    app.exit(0);
+                }
+            }
             if let RunEvent::Exit = event {
                 if let Some(shared) = app.try_state::<Shared>() {
                     shared.lock().unwrap().save(true);
