@@ -142,6 +142,15 @@ python -I scripts/demo_log.py demo.log --maps 4 --speed 6
 
 Point the app at `demo.log` in **Settings → Game log → Choose file**.
 
+### Checking a real log
+
+To see what the tracker recognises in a game log (pickups, map entries,
+costs, runs), play it through the parser offline:
+
+```bash
+cargo run --manifest-path src-tauri/Cargo.toml --example replay -- path/to/UE_game.log --events
+```
+
 ## Adding a language
 
 All UI text is in `public/locales/en.json`. To add a language:
