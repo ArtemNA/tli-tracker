@@ -14,8 +14,9 @@ take over your PC:
   start, and that website is given a function that runs **any** Windows
   command it wants;
 - the app demands **administrator rights**, so those commands run as admin;
-- the browser sandbox is turned off, and the auto-updater installs whatever
-  zip it downloads with no signature check.
+- the browser sandbox is turned off, and the English translation adds an
+  auto-updater that installs whatever zip it downloads with no signature
+  check.
 
 Nothing indicates this has been abused, but anyone who controls (or
 compromises) that server could run code on every user's machine, and none of
@@ -106,7 +107,8 @@ The Rust side lives in `src-tauri/src/`:
 ## Security and privacy
 
 A static review (no code was run) of ETor 1.3.0, the English translated
-build, found the following; the same code is in the original Chinese build:
+build, found the following. Everything except the auto-updater is also in the
+original Chinese build shipped inside it:
 
 | ETor | TLI Tracker |
 |---|---|
@@ -115,8 +117,32 @@ build, found the following; the same code is in the original Chinese build:
 | Requires administrator rights (`requireAdministrator`) | Runs as a normal user |
 | Chromium sandbox disabled (`no-sandbox`) | Default WebView2 sandbox |
 | `save-to-temp` writes any path the page names; `open-window` gives any URL the same privileged bridge | Not present. The web layer can only move/minimize/close its own window |
-| Auto-update downloads and runs a zip without any signature check | No auto-update |
+| Auto-update (added by the English translation) downloads and installs a zip without any signature check | No auto-update |
 | Uploads your prices and reports, signed with a key embedded in the app | Uploads nothing |
+
+### How to verify
+
+You don't need reverse-engineering tools; an Electron app's code is plain
+JavaScript inside an archive.
+
+- **Admin rights**: Windows shows a UAC prompt when ETor starts.
+- **Remote UI**: open `https://etor-beta.710421059.xyz` in any browser; it is
+  the same interface the app shows.
+- **Shell access**: unpack the archive (needs Node.js; or use 7-Zip with an
+  Asar plugin):
+
+  ```bash
+  npx @electron/asar extract "resources/app.asar" etor-src
+  ```
+
+  In the translated 1.3.0 build, `etor-src/build/obf-app/main.js` loads the
+  site at line 87, registers `run-shell-command` at line 941 and passes the
+  received string to `exec(command, …)` at line 950. `build/obf-app/preload.js`
+  exposes it to the page as `runShellCommand`. The original build's
+  `build/obf-app/main.js` is obfuscated, but its `preload.js` exposes the same
+  `runShellCommand`, and the readable source `main.js` in the same archive has
+  the same `exec` handler.
+- **Auto-update**: `build/obf-app/updater.js` (translated build).
 
 What the app does over the network:
 
