@@ -1,16 +1,18 @@
 """Writes a synthetic UE_game.log so the app can be tried without the game.
 
-    python -I scripts/demo_log.py <output.log> [--maps N] [--speed X]
+    python -I scripts/demo_log.py <output.log> [--maps N] [--speed X] [--instant]
 
 Point the app at the file (Settings -> Game log -> Choose file) and watch a
 few map runs play out in real time. --speed 10 makes a 60 s map take 6 s.
+--instant writes everything at once with simulated timestamps that end now,
+which gives realistic map times for screenshots.
 The line formats mirror what the game prints with "Enable Log" turned on.
 """
 
 import argparse
 import random
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 PLAYER_ID = "900000000000000001"
@@ -18,16 +20,20 @@ FE = "100300"
 BEACON = "400015"  # Blistering Lava Sea Beacon (Timemark 8)
 COMPASS = "10250"  # Sandlord Compass
 LOOT_POOL = ["6007", "6118", "6003", "5029", "410102", "8310", "370201", "10140", "5144"]
+RARE_POOL = ["360603", "410301", "6118", "370401"]
+# (map id, beacon) pairs: K7-0 Lava Sea, K8-0 Glacial Abyss, U8 Steel Forge, K7-1 Thunder Wastes
+MAPS = [("1061100", "400015"), ("1091000", "400007"), ("1121200", "400022"), ("1071300", "400024")]
 
 
 class Log:
-    def __init__(self, path: Path, speed: float):
+    def __init__(self, path: Path, speed: float, start: datetime | None = None):
         self.f = path.open("a", encoding="utf-8", newline="\n")
         self.speed = speed
         self.frame = 1
+        self.clock = start  # simulated time when not None
 
     def ts(self) -> str:
-        now = datetime.now(timezone.utc)
+        now = self.clock or datetime.now(timezone.utc)
         return now.strftime("%Y.%m.%d-%H.%M.%S:") + f"{now.microsecond // 1000:03d}"
 
     def line(self, text: str, cat: str = "TLGame") -> None:
@@ -42,6 +48,9 @@ class Log:
             self.line("UIManager@ tick")
 
     def wait(self, seconds: float) -> None:
+        if self.clock is not None:
+            self.clock += timedelta(seconds=seconds)
+            return
         self.f.flush()
         time.sleep(seconds / self.speed)
 
@@ -101,9 +110,12 @@ def main() -> None:
     ap.add_argument("out", type=Path)
     ap.add_argument("--maps", type=int, default=5)
     ap.add_argument("--speed", type=float, default=6.0)
+    ap.add_argument("--instant", action="store_true")
     args = ap.parse_args()
 
-    log = Log(args.out, args.speed)
+    # About 3 minutes per map, ending a little after now.
+    start = datetime.now(timezone.utc) - timedelta(minutes=2.5 * args.maps) if args.instant else None
+    log = Log(args.out, args.speed, start)
     bag = Bag()
     log.raw("Log file open, demo")
     message(log, "RecvMessage", "GetPlayerData", [
@@ -115,7 +127,8 @@ def main() -> None:
 
     # Calibrate: the game re-sends the currency and other pages.
     bag.change(FE, 1200, 102)
-    bag.change(BEACON, 20, 103)
+    for _, beacon in MAPS:
+        bag.change(beacon, 20, 103)
     bag.change(COMPASS, 15, 103)
     for page in (102, 103):
         log.line(f"ItemChange@ Reset PageId={page}")
@@ -127,19 +140,25 @@ def main() -> None:
 
     for n in range(args.maps):
         print(f"map {n + 1}/{args.maps}")
-        item_block(log, "Spv3Open", [bag.change(BEACON, -1, 103), bag.change(COMPASS, -1, 103)])
+        map_id, beacon = MAPS[n % len(MAPS)] if args.instant else MAPS[0]
+        item_block(log, "Spv3Open", [bag.change(beacon, -1, 103), bag.change(COMPASS, -1, 103)])
         log.wait(1)
-        join_fight(log, f"1061100_demo{n}_{random.randrange(10**6)}", "1061100", town=False)
-        for _ in range(random.randint(5, 9)):
-            log.wait(random.uniform(4, 9))
-            picks = [bag.change(FE, random.randint(3, 25), 102)]
+        join_fight(log, f"{map_id}_demo{n}_{random.randrange(10**6)}", map_id, town=False)
+        last = n == args.maps - 1
+        for _ in range(random.randint(4, 6) if last else random.randint(8, 14)):
+            log.wait(random.uniform(6, 16))
+            picks = [bag.change(FE, random.randint(8, 60), 102)]
             if random.random() < 0.6:
-                picks.append(bag.change(random.choice(LOOT_POOL), random.randint(1, 2), 103))
+                picks.append(bag.change(random.choice(LOOT_POOL), random.randint(1, 3), 103))
+            if random.random() < 0.08:
+                picks.append(bag.change(random.choice(RARE_POOL), 1, 103))
             item_block(log, "PickItems", picks)
             log.noise(2)
+        if last and args.instant:
+            break
         log.wait(3)
         join_fight(log, "110_hideout", "111000", town=True)
-        log.wait(random.uniform(5, 10))
+        log.wait(random.uniform(20, 50))
     log.f.flush()
     print("done")
 

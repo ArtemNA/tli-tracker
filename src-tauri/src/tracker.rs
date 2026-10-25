@@ -337,7 +337,9 @@ impl Tracker {
         let changed = self.player.as_ref().is_none_or(|p| p.id != player.id || p.season_id != player.season_id);
         if changed {
             self.finish_current(ts, pricer);
-            if self.player.is_some() {
+            // A new character starts a new session; so does the very first
+            // login a fresh install sees, even if it is older than app start.
+            if self.player.is_some() || self.history.is_empty() {
                 self.session_start = ts;
             }
             self.inventory.clear();

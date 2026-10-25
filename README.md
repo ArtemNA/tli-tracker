@@ -13,6 +13,8 @@ that nothing on your PC can be controlled from the internet.
 - **English UI**, with translations as plain JSON files (see
   [Adding a language](#adding-a-language)).
 
+![Overview](docs/screenshots/overview.png)
+
 ## Features
 
 | Page | What it shows |
@@ -25,10 +27,21 @@ that nothing on your PC can be controlled from the internet.
 | Strategies | The community strategy leaderboard (read-only), translated from Chinese |
 | Overlay | Small always-on-top window with the current map timer and profit |
 
+<p align="center"><img src="docs/screenshots/overlay.png" alt="Overlay" width="420"></p>
+
+| | |
+|---|---|
+| ![Analytics](docs/screenshots/analytics.png) | ![History](docs/screenshots/history.png) |
+| ![Prices](docs/screenshots/prices.png) | ![Strategies](docs/screenshots/strategies.png) |
+| ![Bag](docs/screenshots/bag.png) | ![Settings](docs/screenshots/settings.png) |
+
+Screenshots use the synthetic session from `scripts/demo_log.py --instant`.
+
 ## Getting started
 
-1. Run the installer (or the portable `TLI Tracker.exe`). No administrator
-   rights are needed.
+1. Download `TLI Tracker_x.y.z_x64-setup.exe` from
+   [Releases](https://github.com/ArtemNA/tli-tracker/releases) and run it.
+   It installs for the current user; no administrator rights are needed.
 2. In Torchlight: Infinite open **Settings** and turn on **Enable Log**
    (not "Upload Log").
 3. Go back to character selection and enter the game again.
